@@ -1,13 +1,19 @@
 import{C,rng,poly,pine,person,star}from'./art.js';
-const lifeLocations=[{name:'Port of Spain',lon:-61.5189,lat:10.6549}];
-export const destination=lifeLocations[Math.floor(Math.random()*lifeLocations.length)];
+export const lifeLocations=[
+  {id:'port-of-spain',name:'Port of Spain',lon:-61.5189,lat:10.6549},
+  {id:'london',name:'London',lon:-.1278,lat:51.5074},
+  {id:'chicago',name:'Chicago',lon:-87.6298,lat:41.8781},
+  {id:'san-francisco',name:'San Francisco',lon:-122.4194,lat:37.7749},
+];
 const bounds={west:-136,east:46,north:77,south:5};
 const prominent=new Set(['Ottawa','Washington, D.C.','Washington','Mexico City','Havana','London','Paris','Berlin','Madrid','Rome','New York','Toronto','Miami','Los Angeles','Port-of-Spain']);
 export class Atlas{
   constructor(data){
     this.data=data;this.width=1440;this.height=830;
     this.camera={x:720,y:415,zoom:1};this.hover=null;this.fit=1;
-    this.position=this.project(destination.lon,destination.lat);
+    this.location=lifeLocations[Math.floor(Math.random()*lifeLocations.length)];
+    this.position=this.project(this.location.lon,this.location.lat);
+    this.places=lifeLocations.map(location=>({location,point:this.project(location.lon,location.lat)}));
     this.base=document.createElement('canvas');this.base.width=this.width;this.base.height=this.height;
     this.paint();
   }
@@ -60,13 +66,16 @@ export class Atlas{
     const edge=document.createElement('canvas');edge.width=this.width;edge.height=this.height;edge.getContext('2d').putImageData(coast,0,0);ctx.drawImage(edge,0,0);
     this.mask=maskPixels;
   }
-  resize(w,h){this.w=w;this.h=h;this.fit=Math.min(w/this.width,h/this.height)*.98;if(w/h<1){this.fit=Math.max(w/this.width,h/this.height*.75);if(!this.mobileCentered){this.camera.x=this.position[0];this.camera.y=this.position[1]-100;this.mobileCentered=true;}}}
+  resize(w,h){this.w=w;this.h=h;this.fit=Math.max(w/this.width,h/this.height)*1.002;if(!this.viewportReady){this.camera.x=this.position[0];this.camera.y=this.position[1];this.viewportReady=true;}this.constrain();}
+  select(location){this.location=location;this.position=this.project(location.lon,location.lat);}
+  focusLocation(location){const p=this.project(location.lon,location.lat);this.camera.x=p[0];this.camera.y=p[1];this.constrain();}
+  reset(){this.camera.zoom=1;this.focusLocation(this.location);}
   screen(point,w=this.w,h=this.h){const s=this.fit*this.camera.zoom;return[(point[0]-this.camera.x)*s+w/2,(point[1]-this.camera.y)*s+h/2];}
   unprojectScreen(x,y){const s=this.fit*this.camera.zoom;return[(x-this.w/2)/s+this.camera.x,(y-this.h/2)/s+this.camera.y];}
   pan(dx,dy){const s=this.fit*this.camera.zoom;this.camera.x-=dx/s;this.camera.y-=dy/s;this.constrain();}
-  constrain(){this.camera.x=Math.max(0,Math.min(this.width,this.camera.x));this.camera.y=Math.max(0,Math.min(this.height,this.camera.y));}
-  zoom(factor,x=this.w/2,y=this.h/2){const before=this.unprojectScreen(x,y);this.camera.zoom=Math.max(.7,Math.min(9,this.camera.zoom*factor));const after=this.unprojectScreen(x,y);this.camera.x+=before[0]-after[0];this.camera.y+=before[1]-after[1];this.constrain();}
-  hit(x,y){const p=this.screen(this.position);return Math.hypot(x-p[0],y-p[1])<24;}
+  constrain(){if(!this.w||!this.h)return;this.camera.zoom=Math.max(1,Math.min(9,this.camera.zoom));const halfW=this.w/(2*this.fit*this.camera.zoom),halfH=this.h/(2*this.fit*this.camera.zoom);this.camera.x=Math.max(halfW,Math.min(this.width-halfW,this.camera.x));this.camera.y=Math.max(halfH,Math.min(this.height-halfH,this.camera.y));}
+  zoom(factor,x=this.w/2,y=this.h/2){const before=this.unprojectScreen(x,y);this.camera.zoom=Math.max(1,Math.min(9,this.camera.zoom*factor));const after=this.unprojectScreen(x,y);this.camera.x+=before[0]-after[0];this.camera.y+=before[1]-after[1];this.constrain();}
+  hit(x,y){return this.places.find(place=>{const p=this.screen(place.point);return Math.hypot(x-p[0],y-p[1])<15;})?.location||null;}
   cityAt(x,y){let best=null,dist=10;for(const city of this.data.cities){const p=this.screen(this.project(city.lon,city.lat));const d=Math.hypot(x-p[0],y-p[1]);if(d<dist){dist=d;best=city;}}return best;}
   draw(ctx,w,h,time,motion=true){
     this.resize(w,h);ctx.fillStyle=C.sea;ctx.fillRect(0,0,w,h);
@@ -75,7 +84,7 @@ export class Atlas{
     const occupied=[];ctx.font='7px monospace';ctx.textBaseline='middle';
     const cities=[...this.data.cities].sort((a,b)=>Number(b.capital)-Number(a.capital)||b.population-a.population);
     for(const city of cities){
-      if(city.name==='Port-of-Spain'||city.name==='Port of Spain')continue;
+      if(lifeLocations.some(place=>Math.abs(place.lon-city.lon)<.2&&Math.abs(place.lat-city.lat)<.2))continue;
       const[x,y]=this.screen(this.project(city.lon,city.lat));if(x<0||x>w||y<0||y>h)continue;
       if(city.capital)star(ctx,Math.round(x),Math.round(y),2.4);else if(city.population>1300000||this.camera.zoom>1.7){ctx.fillStyle='#524c39';ctx.fillRect(Math.round(x),Math.round(y),1,1);}
       const show=this.hover===city||prominent.has(city.name)||(this.camera.zoom>2.5&&(city.capital||city.population>2000000));
@@ -86,9 +95,10 @@ export class Atlas{
       if(rect.x+rect.w>w-4||rect.y<44||rect.y>h-35)continue;
       occupied.push(rect);ctx.fillStyle='#e9d8b8ed';ctx.fillRect(Math.round(rect.x-1),Math.round(rect.y),Math.ceil(width+3),10);ctx.fillStyle='#302a20';ctx.fillText(label,Math.round(rect.x),Math.round(y));
     }
+    for(const place of this.places){const[x,y]=this.screen(place.point);if(place.location.id!==this.location.id&&x>=0&&x<=w&&y>=0&&y<=h)poly(ctx,[[x,y-3],[x+3,y],[x,y+3],[x-3,y]],'#cfb374','#6c563b');}
     const[x,y]=this.screen(this.position);if(x>-40&&x<w+40&&y>-40&&y<h+40){
       const pulse=motion?Math.sin(time*2)*.3+.7:1;ctx.strokeStyle=`rgba(92,65,35,${pulse})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(Math.round(x),Math.round(y)+2,6,2,0,0,Math.PI*2);ctx.stroke();
-      person(ctx,x,y-2,time,false,1);const label='Port of Spain';ctx.font='7px monospace';const tw=ctx.measureText(label).width;const lx=Math.max(3,Math.min(w-tw-8,x+10));const ly=Math.min(h-25,y-8);ctx.fillStyle='#eddfbde8';ctx.fillRect(Math.round(lx-3),Math.round(ly-6),Math.ceil(tw+6),11);ctx.fillStyle='#3f3527';ctx.fillText(label,Math.round(lx),Math.round(ly));
+      person(ctx,x,y-2,time,false,1);
     }
   }
 }
