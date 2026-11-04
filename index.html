@@ -5,62 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hugh Hoford</title>
   <style>
+    :root { color-scheme: light; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: #fafaf9;
-      color: #252525;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.6;
+      background: #fff;
+      color: #111;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: .875rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
     }
-    main {
-      width: min(52rem, calc(100% - 3rem));
-      margin: clamp(3rem, 12vh, 8rem) auto;
+    ::selection { background: #111; color: #fff; }
+    .site { width: min(64rem, calc(100% - 4rem)); margin: 0 auto; }
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: clamp(4rem, 12vh, 8rem) 0 4rem;
     }
-    header { padding-bottom: 3rem; }
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
+      font-size: clamp(1.6rem, 4vw, 2.25rem);
       font-weight: 500;
       line-height: 1.2;
-      letter-spacing: -.045em;
+      letter-spacing: -.065em;
     }
+    nav { display: flex; flex-wrap: wrap; gap: .5rem 1.75rem; }
+    nav a { font-size: .75rem; text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
     section {
       display: grid;
-      grid-template-columns: 11rem minmax(0, 1fr);
-      gap: 2rem;
-      min-height: 10rem;
-      padding: 2rem 0;
-      border-top: 1px solid #dededb;
+      grid-template-columns: 12rem minmax(0, 1fr);
+      gap: 3rem;
+      min-height: 14rem;
+      padding: 2.25rem 0;
+      border-top: 1px solid #d4d4d4;
+      scroll-margin-top: 2rem;
     }
-    h2 { margin: 0; color: #666; font-size: .85rem; font-weight: 400; }
-    .entries { display: grid; align-content: start; gap: 1rem; }
-    a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .25em; }
-    a:hover { color: #666; }
-    a:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
-    @media (max-width: 560px) {
-      header { padding-bottom: 2rem; }
-      section { grid-template-columns: 1fr; gap: 1.5rem; min-height: 9rem; }
+    h2 {
+      margin: 0;
+      font-size: .75rem;
+      font-weight: 400;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .entries { display: grid; align-content: start; gap: 1.5rem; min-width: 0; }
+    a { color: inherit; text-underline-offset: .3em; text-decoration-thickness: 1px; }
+    a:focus-visible { outline: 1px solid currentColor; outline-offset: 5px; }
+    #contact-section { min-height: 10rem; }
+    @media (max-width: 720px) {
+      .site { width: calc(100% - 3rem); }
+      header { flex-direction: column; align-items: flex-start; gap: 1.75rem; padding-bottom: 3rem; }
+      nav { gap: .5rem 1.5rem; }
+      section { grid-template-columns: 8rem minmax(0, 1fr); gap: 1.5rem; min-height: 12rem; }
+    }
+    @media (max-width: 420px) {
+      nav { gap: .5rem 1.1rem; }
+      section { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.75rem 0; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <header><h1>Hugh Hoford</h1></header>
-    <section aria-labelledby="projects">
-      <h2 id="projects">Projects</h2>
-      <div class="entries">
-      </div>
-    </section>
-    <section aria-labelledby="experience">
-      <h2 id="experience">Experience</h2>
-      <div class="entries">
-      </div>
-    </section>
-    <section aria-labelledby="contact">
-      <h2 id="contact">Contact</h2>
-      <div class="entries"><a href="https://github.com/hhoford">GitHub</a></div>
-    </section>
-  </main>
+  <div class="site">
+    <header>
+      <h1>Hugh Hoford</h1>
+      <nav aria-label="Main navigation">
+        <a href="#about-section">About</a>
+        <a href="#projects-section">Projects</a>
+        <a href="#experience-section">Experience</a>
+        <a href="#contact-section">Contact</a>
+      </nav>
+    </header>
+    <main>
+      <section id="about-section" aria-labelledby="about">
+        <h2 id="about">About</h2>
+        <div class="entries"></div>
+      </section>
+      <section id="projects-section" aria-labelledby="projects">
+        <h2 id="projects">Projects</h2>
+        <div class="entries"></div>
+      </section>
+      <section id="experience-section" aria-labelledby="experience">
+        <h2 id="experience">Experience</h2>
+        <div class="entries"></div>
+      </section>
+      <section id="contact-section" aria-labelledby="contact">
+        <h2 id="contact">Contact</h2>
+        <div class="entries"><a href="https://github.com/hhoford">GitHub</a></div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>
