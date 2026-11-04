@@ -1,5 +1,5 @@
 import{Atlas}from'./atlas.js';
-import{City}from'./city.js';
+import{City}from'./city.js?v=2';
 const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d');
 const ui={place:document.querySelector('#place'),destination:document.querySelector('#destination'),back:document.querySelector('#back'),landmark:document.querySelector('#landmark'),loading:document.querySelector('#loading'),error:document.querySelector('#error')};
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
@@ -8,7 +8,7 @@ const pointers=new Map();
 function resize(){canvas.width=Math.max(160,Math.round(innerWidth/2));canvas.height=Math.max(160,Math.round(innerHeight/2));ctx.imageSmoothingEnabled=false;if(atlas)atlas.resize(canvas.width,canvas.height);if(city)city.resize(canvas.width,canvas.height);}
 function position(event){const r=canvas.getBoundingClientRect();return[(event.clientX-r.left)*canvas.width/r.width,(event.clientY-r.top)*canvas.height/r.height];}
 function showLandmark(feature){const label=feature?.name||'';ui.landmark.hidden=!feature;if(ui.landmark.textContent!==label)ui.landmark.textContent=label;}
-function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?'Port of Spain':'';ui.back.hidden=next!=='city';ui.destination.hidden=next==='city';canvas.setAttribute('aria-label',next==='city'?'Port of Spain. Use arrow keys or W A S D to walk. Click or tap streets to walk to a place.':'Interactive atlas. Pan and zoom the map. Enter Port of Spain using its marker or the destination button.');showLandmark(null);}
+function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?'Port of Spain':'';ui.back.hidden=next!=='city';ui.destination.hidden=next==='city';document.querySelector('#city-credit').hidden=next!=='city';canvas.setAttribute('aria-label',next==='city'?'Port of Spain. Use arrow keys or W A S D to walk. Click or tap streets to walk to a place.':'Interactive atlas. Pan and zoom the map. Enter Port of Spain using its marker or the destination button.');showLandmark(null);}
 function enter(){if(!atlas||transition||view==='city')return;previousCamera={...atlas.camera};transition={kind:'in',start:performance.now(),duration:reduced.matches?1:1450};canvas.focus({preventScroll:true});}
 function leave(){if(!atlas||transition||view!=='city')return;city.keys.clear();city.path=[];transition={kind:'out',start:performance.now(),duration:reduced.matches?1:1150};showLandmark(null);}
 function zoom(factor,x,y){if(!atlas||transition)return;if(view==='atlas')atlas.zoom(factor,x,y);else city.zoom(factor);}
@@ -64,7 +64,7 @@ addEventListener('resize',resize);
 ui.destination.addEventListener('click',enter);ui.back.addEventListener('click',leave);
 document.querySelector('#zoom-in').addEventListener('click',()=>zoom(1.35));document.querySelector('#zoom-out').addEventListener('click',()=>zoom(1/1.35));document.querySelector('#retry').addEventListener('click',()=>location.reload());
 async function start(){
-  try{const response=await fetch('./data/atlas.json');if(!response.ok)throw new Error('Map data unavailable');const data=await response.json();atlas=new Atlas(data);city=new City();resize();setView('atlas');ui.loading.hidden=true;requestAnimationFrame(draw);}
+  try{const responses=await Promise.all([fetch('./data/atlas.json'),fetch('./data/port-of-spain.json')]);if(responses.some(r=>!r.ok))throw new Error('Map data unavailable');const[data,cityData]=await Promise.all(responses.map(r=>r.json()));atlas=new Atlas(data);city=new City(cityData);resize();setView('atlas');ui.loading.hidden=true;requestAnimationFrame(draw);}
   catch(error){console.error(error);ui.loading.hidden=true;ui.error.hidden=false;ui.destination.hidden=true;document.querySelector('#map-tools').hidden=true;}
 }
 resize();start();
