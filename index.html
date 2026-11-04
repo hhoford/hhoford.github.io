@@ -3,99 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8d7b3">
   <title>Hugh Hoford</title>
-  <style>
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #fff;
-      color: #111;
-      font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: .875rem;
-      line-height: 1.7;
-      -webkit-font-smoothing: antialiased;
-    }
-    ::selection { background: #111; color: #fff; }
-    .site { width: min(64rem, calc(100% - 4rem)); margin: 0 auto; }
-    header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 2rem;
-      padding: clamp(4rem, 12vh, 8rem) 0 4rem;
-    }
-    h1 {
-      margin: 0;
-      font-size: clamp(1.6rem, 4vw, 2.25rem);
-      font-weight: 500;
-      line-height: 1.2;
-      letter-spacing: -.065em;
-    }
-    nav { display: flex; flex-wrap: wrap; gap: .5rem 1.75rem; }
-    nav a { font-size: .75rem; text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
-    section {
-      display: grid;
-      grid-template-columns: 12rem minmax(0, 1fr);
-      gap: 3rem;
-      min-height: 14rem;
-      padding: 2.25rem 0;
-      border-top: 1px solid #d4d4d4;
-      scroll-margin-top: 2rem;
-    }
-    h2 {
-      margin: 0;
-      font-size: .75rem;
-      font-weight: 400;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-    .entries { display: grid; align-content: start; gap: 1.5rem; min-width: 0; }
-    a { color: inherit; text-underline-offset: .3em; text-decoration-thickness: 1px; }
-    a:focus-visible { outline: 1px solid currentColor; outline-offset: 5px; }
-    #contact-section { min-height: 10rem; }
-    @media (max-width: 720px) {
-      .site { width: calc(100% - 3rem); }
-      header { flex-direction: column; align-items: flex-start; gap: 1.75rem; padding-bottom: 3rem; }
-      nav { gap: .5rem 1.5rem; }
-      section { grid-template-columns: 8rem minmax(0, 1fr); gap: 1.5rem; min-height: 12rem; }
-    }
-    @media (max-width: 420px) {
-      nav { gap: .5rem 1.1rem; }
-      section { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.75rem 0; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="site">
-    <header>
-      <h1>Hugh Hoford</h1>
-      <nav aria-label="Main navigation">
-        <a href="#about-section">About</a>
-        <a href="#projects-section">Projects</a>
-        <a href="#experience-section">Experience</a>
-        <a href="#contact-section">Contact</a>
-      </nav>
-    </header>
-    <main>
-      <section id="about-section" aria-labelledby="about">
-        <h2 id="about">About</h2>
-        <div class="entries"></div>
-      </section>
-      <section id="projects-section" aria-labelledby="projects">
-        <h2 id="projects">Projects</h2>
-        <div class="entries"></div>
-      </section>
-      <section id="experience-section" aria-labelledby="experience">
-        <h2 id="experience">Experience</h2>
-        <div class="entries"></div>
-      </section>
-      <section id="contact-section" aria-labelledby="contact">
-        <h2 id="contact">Contact</h2>
-        <div class="entries"><a href="https://github.com/hhoford">GitHub</a></div>
-      </section>
-    </main>
-  </div>
+  <main id="world">
+    <canvas id="scene" tabindex="0" aria-label="Interactive atlas. Explore the map and enter Port of Spain using the destination button."></canvas>
+    <header><a href="./" id="name">Hugh Hoford</a><span id="place" aria-live="polite"></span></header>
+    <nav id="map-tools" aria-label="Map controls">
+      <button id="zoom-in" aria-label="Zoom in">+</button>
+      <button id="zoom-out" aria-label="Zoom out">−</button>
+    </nav>
+    <button id="destination">Port of Spain <span aria-hidden="true">↗</span></button>
+    <button id="back" hidden><span aria-hidden="true">←</span> Atlas</button>
+    <div id="landmark" hidden role="status"></div>
+    <p id="loading" role="status">Loading atlas…</p>
+    <div id="error" hidden role="alert">The atlas could not load. <button id="retry">Retry</button></div>
+  </main>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
