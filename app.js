@@ -1,4 +1,4 @@
-import{Atlas,lifeLocations}from'./atlas.js?v=3';
+import{Atlas,lifeLocations}from'./atlas.js?v=4';
 import{City}from'./city.js?v=3';
 const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d');
 const ui={place:document.querySelector('#place'),destinations:document.querySelector('#destinations'),landmark:document.querySelector('#landmark'),loading:document.querySelector('#loading'),error:document.querySelector('#error')};
@@ -12,7 +12,7 @@ function syncLabels(){
   const ratioX=innerWidth/canvas.width,ratioY=innerHeight/canvas.height;
   for(const place of atlas.places){const p=atlas.screen(place.point),link=links.get(place.location.id);if(!link)continue;let x=p[0]*ratioX+11,y=p[1]*ratioY-7;const width=link.offsetWidth||place.location.name.length*7.3+8;if(p[0]>=0&&p[0]<=canvas.width&&p[1]>=0&&p[1]<=canvas.height){x=Math.max(10,Math.min(innerWidth-width-10,x));y=Math.max(62,Math.min(innerHeight-24,y));}link.style.left=Math.round(x)+'px';link.style.top=Math.round(y)+'px';}
 }
-function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?activeLocation.name:'';document.querySelector('#city-credit').hidden=next!=='city';canvas.setAttribute('aria-label',next==='city'?activeLocation.name+'. Use arrow keys or W A S D to walk. Click or tap streets to walk. Press Escape or select Hugh Hoford to return to the atlas.':'Interactive atlas. Pan and zoom, or select London, Chicago, San Francisco, or Port of Spain.');showLandmark(null);syncLabels();}
+function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?activeLocation.name:'';document.querySelector('#city-credit').hidden=next!=='city';canvas.setAttribute('aria-label',next==='city'?activeLocation.name+'. Use arrow keys or W A S D to walk. Click or tap streets to walk. Press Escape or select Hugh Hoford to return to the atlas.':'Worldwide atlas with 135 GDP-ranked city locations. Pan and zoom to read city labels. Select London, Chicago, San Francisco, or Port of Spain to explore.');showLandmark(null);syncLabels();}
 async function enter(place=atlas?.location){
   if(!atlas||!place||transition||loadingCity||view==='city')return;
   loadingCity=true;ui.error.hidden=true;syncLabels();
@@ -28,7 +28,7 @@ function smooth(x){return x*x*(3-2*x);}
 function draw(now){
   requestAnimationFrame(draw);if(!atlas)return;const dt=Math.min(.05,(now-lastTime)/1000||.016);lastTime=now;if(view==='city'&&!transition)city.update(dt,now/1000);if(now-lastPaint<30)return;lastPaint=now;
   const w=canvas.width,h=canvas.height,time=now/1000;ctx.globalAlpha=1;ctx.setTransform(1,0,0,1,0,0);
-  if(transition){const raw=Math.min(1,(now-transition.start)/transition.duration),p=smooth(transition.kind==='in'?raw:1-raw),from=previousCamera;atlas.camera.x=from.x+(atlas.position[0]-from.x)*p;atlas.camera.y=from.y+(atlas.position[1]-from.y)*p;atlas.camera.zoom=from.zoom+(8-from.zoom)*p;atlas.draw(ctx,w,h,time,!reduced.matches);const blend=Math.max(0,(p-.62)/.38);if(blend>0){ctx.globalAlpha=blend;city.draw(ctx,w,h,time,!reduced.matches);ctx.globalAlpha=1;}if(raw===1){const next=transition.kind==='in'?'city':'atlas';transition=null;if(next==='atlas')atlas.camera={...previousCamera};setView(next);}}
+  if(transition){const raw=Math.min(1,(now-transition.start)/transition.duration),p=smooth(transition.kind==='in'?raw:1-raw),from=previousCamera;atlas.camera.x=from.x+(atlas.nearestX(atlas.position[0],from.x)-from.x)*p;atlas.camera.y=from.y+(atlas.position[1]-from.y)*p;atlas.camera.zoom=from.zoom+(8-from.zoom)*p;atlas.draw(ctx,w,h,time,!reduced.matches);const blend=Math.max(0,(p-.62)/.38);if(blend>0){ctx.globalAlpha=blend;city.draw(ctx,w,h,time,!reduced.matches);ctx.globalAlpha=1;}if(raw===1){const next=transition.kind==='in'?'city':'atlas';transition=null;if(next==='atlas')atlas.camera={...previousCamera};setView(next);}}
   else if(view==='atlas')atlas.draw(ctx,w,h,time,!reduced.matches);else city.draw(ctx,w,h,time,!reduced.matches);
   syncLabels();
 }
@@ -49,7 +49,7 @@ addEventListener('keyup',event=>city?.keys.delete(event.key.toLowerCase()));addE
 document.querySelector('#name').addEventListener('click',event=>{event.preventDefault();if(view==='city')leave();else if(atlas&&!transition){atlas.reset();syncLabels();}});
 document.querySelector('#retry').addEventListener('click',()=>location.reload());
 async function start(){
-  try{const response=await fetch('./data/atlas.json');if(!response.ok)throw new Error('Map data unavailable');atlas=new Atlas(await response.json());activeLocation=atlas.location;
+  try{const response=await fetch('./data/atlas.json?v=4');if(!response.ok)throw new Error('Map data unavailable');atlas=new Atlas(await response.json());activeLocation=atlas.location;
     for(const place of lifeLocations){const link=document.createElement('a');link.href='#'+place.id;link.textContent=place.name;link.addEventListener('click',event=>{event.preventDefault();enter(place);});link.addEventListener('focus',()=>{if(view==='atlas'&&!transition){atlas.focusLocation(place);syncLabels();}});ui.destinations.appendChild(link);links.set(place.id,link);}
     resize();setView('atlas');ui.loading.hidden=true;requestAnimationFrame(draw);const linked=lifeLocations.find(place=>'#'+place.id===location.hash);if(linked)enter(linked);
   }catch(error){console.error(error);ui.loading.hidden=true;ui.error.hidden=false;ui.destinations.hidden=true;}
