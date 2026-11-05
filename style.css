@@ -35,4 +35,27 @@ header{position:absolute;z-index:2;top:clamp(20px,3vw,40px);left:clamp(20px,3vw,
 .radio-footer{display:flex;gap:8px;align-items:baseline;min-height:14px;margin-top:8px;font-size:10px;color:#62573f}
 .radio-footer a{margin-left:auto;color:inherit;white-space:nowrap;text-decoration:none}
 #radio-retry{text-decoration:underline;font-size:10px}
+#pages{position:fixed;z-index:5;top:clamp(24px,3vw,44px);right:clamp(20px,3vw,44px);display:flex;gap:clamp(12px,2vw,28px);font-size:12px}
+#pages a{color:#30291f;text-decoration:none;text-shadow:0 1px #f2e4c7}
+#pages a:hover,#pages a[aria-current="page"]{text-decoration:underline;text-underline-offset:5px}
+#page-panel{position:fixed;z-index:4;inset:0 0 0 50%;width:50%;padding:clamp(100px,12vh,160px) clamp(24px,5vw,80px) 40px;background:#eee4cc;border-left:1px solid #a59674;overflow:auto}
+#page-title{font:400 clamp(28px,4vw,56px)/1.1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:-.065em;margin:0 0 40px;outline:none}
+#page-close{position:absolute;top:clamp(66px,7vw,90px);right:clamp(18px,3vw,42px);background:none;border:0;font-size:24px;width:36px;height:36px;padding:0}
+#page-content{font-size:clamp(12px,1.3vw,16px);line-height:1.6;overflow-wrap:anywhere}
+#page-content a{color:#423c2c;text-underline-offset:5px}
+body[data-page-open="true"] #world{width:50%}
+body[data-page-open="true"] #pages{left:calc(50% + clamp(24px,5vw,80px));right:24px;justify-content:flex-start}
+#building-links{position:absolute;inset:0;overflow:clip;pointer-events:none}
+#building-links button{position:absolute;pointer-events:auto;transform:translate(-50%,-100%);padding:4px 7px;background:#efe4c9;border:1px solid #806c47;box-shadow:0 2px #443e2c24;font-size:11px;line-height:1.1;white-space:nowrap}
+#building-links button[aria-current="page"]{background:#554c36;color:#f4e7c9;border-color:#554c36}
 @media(max-width:600px){header{gap:9px;flex-direction:column}#name{font-size:21px}#landmark{bottom:30px;max-width:85%}}
+@media(max-width:700px) and (orientation:portrait){
+  #pages{top:auto;bottom:28px;left:20px;right:20px;justify-content:center;gap:24px;background:#eddfbde8;padding:10px 12px}
+  #radio{bottom:88px}
+  body[data-page-open="true"] #world{width:100%;height:50%}
+  #page-panel{inset:50% 0 0;width:100%;height:50%;padding:76px 24px 28px;border-left:0;border-top:1px solid #a59674}
+  body[data-page-open="true"] #pages{top:calc(50% + 14px);bottom:auto;left:24px;right:52px;justify-content:flex-start;gap:18px;padding:8px 0;background:none}
+  #page-close{top:16px;right:12px}
+  #page-title{font-size:32px;margin-bottom:26px}
+}
+@media(prefers-reduced-motion:no-preference){#page-panel:not([hidden]){animation:page-in .2s ease-out}@keyframes page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}}
