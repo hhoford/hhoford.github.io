@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#e8d7b3">
   <title>Hugh Hoford</title>
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <main id="world">
     <canvas id="scene" tabindex="0" aria-label="Worldwide radio atlas. Select a city to choose a local radio station. Pan and zoom to explore the map."></canvas>
     <header><a href="./" id="name">Hugh Hoford</a><span id="place" aria-live="polite"></span></header>
     <nav id="destinations" aria-label="City radio stations"></nav>
+    <nav id="building-links" aria-label="City page buildings" hidden></nav>
     <section id="radio" aria-labelledby="radio-city" hidden>
       <div class="radio-heading"><h2 id="radio-city"></h2><button id="radio-explore" hidden>Explore</button><button id="radio-close" aria-label="Close radio">×</button></div>
       <div class="radio-controls"><select id="radio-station" aria-label="Choose a radio station" disabled><option value="">Choose a station</option></select><button id="radio-play" disabled>Play</button></div>
@@ -23,6 +24,17 @@
     <p id="loading" role="status">Loading atlas…</p>
     <div id="error" hidden role="alert">The map could not load. <button id="retry">Retry</button></div>
   </main>
-  <script type="module" src="app.js?v=6"></script>
+  <nav id="pages" aria-label="Personal pages"><a href="#about">About</a><a href="#projects">Projects</a><a href="#cv">CV</a><a href="#contact">Contact</a></nav>
+  <aside id="page-panel" role="dialog" aria-modal="false" aria-labelledby="page-title" hidden>
+    <button id="page-close" aria-label="Close page">×</button>
+    <h1 id="page-title" tabindex="-1"></h1>
+    <div id="page-content">
+      <section data-page="about" hidden></section>
+      <section data-page="projects" hidden></section>
+      <section data-page="cv" hidden><a href="mailto:hugh.hoford@gmail.com?subject=CV%20request">Request CV by email</a></section>
+      <section data-page="contact" hidden><a href="mailto:hugh.hoford@gmail.com">hugh.hoford@gmail.com</a></section>
+    </div>
+  </aside>
+  <script type="module" src="app.js?v=7"></script>
 </body>
 </html>

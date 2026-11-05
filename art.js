@@ -28,4 +28,12 @@ export function palm(ctx,x,y,size=1,time=0){
   poly(ctx,[[1,-19],[4,-26],[9,-26],[5,-23],[3,-17]],'#9ba468');
   poly(ctx,[[1,-19],[-4,-26],[-9,-24],[-4,-22],[0,-16]],'#82955d');ctx.restore();
 }
+export function deciduous(ctx,x,y,size=1,tone=0){
+  ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(size,size);
+  poly(ctx,[[-7,2],[1,5],[10,1],[3,-2]],'#3b4f3c23');
+  ctx.fillStyle='#6c6045';ctx.fillRect(0,-12,2,13);ctx.fillStyle='#a99b70';ctx.fillRect(1,-8,1,8);
+  poly(ctx,[[-7,-9],[-8,-15],[-4,-20],[2,-22],[8,-17],[9,-11],[4,-7],[-2,-7]],tone?'#6e8157':'#566e4f','#4f6547');
+  poly(ctx,[[-7,-15],[-3,-20],[2,-21],[5,-17],[3,-13],[-2,-12]],tone?'#b1b57c':'#9ca970');
+  poly(ctx,[[3,-13],[7,-17],[8,-12],[4,-8],[1,-8]],'#7f945e');ctx.restore();
+}
 export function star(ctx,x,y,size=3){const points=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?size*.4:size;points.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}poly(ctx,points,'#e8d4a0','#6c5741');}
