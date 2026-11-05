@@ -5,18 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#e8d7b3">
   <title>Hugh Hoford</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <main id="world">
-    <canvas id="scene" tabindex="0" aria-label="Worldwide pixel atlas. Pan and zoom to view 135 GDP-ranked city locations. Select a travel destination to explore."></canvas>
+    <canvas id="scene" tabindex="0" aria-label="Worldwide radio atlas. Select a city to choose a local radio station. Pan and zoom to explore the map."></canvas>
     <header><a href="./" id="name">Hugh Hoford</a><span id="place" aria-live="polite"></span></header>
-    <nav id="destinations" aria-label="Travel destinations"></nav>
+    <nav id="destinations" aria-label="City radio stations"></nav>
+    <section id="radio" aria-labelledby="radio-city" hidden>
+      <div class="radio-heading"><h2 id="radio-city"></h2><button id="radio-explore" hidden>Explore</button><button id="radio-close" aria-label="Close radio">×</button></div>
+      <div class="radio-controls"><select id="radio-station" aria-label="Choose a radio station" disabled><option value="">Choose a station</option></select><button id="radio-play" disabled>Play</button></div>
+      <div class="radio-footer"><span id="radio-status" role="status"></span><button id="radio-retry" hidden>Retry</button><a href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser</a></div>
+      <audio id="radio-audio" preload="none"></audio>
+    </section>
     <a id="city-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" hidden>© OpenStreetMap contributors</a>
     <div id="landmark" hidden role="status"></div>
     <p id="loading" role="status">Loading atlas…</p>
     <div id="error" hidden role="alert">The map could not load. <button id="retry">Retry</button></div>
   </main>
-  <script type="module" src="app.js?v=4"></script>
+  <script type="module" src="app.js?v=5"></script>
 </body>
 </html>
