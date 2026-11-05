@@ -22,7 +22,7 @@ function setView(next){view=next;document.body.dataset.view=next;ui.place.textCo
 function selectCity(place){
   if(!atlas||transition||loadingCity||view!=='atlas')return;
   const life=lifeLocations.find(location=>Math.abs(location.lon-place.lon)<.2&&Math.abs(location.lat-place.lat)<.2),ranked=atlas.data.cities.find(location=>Math.abs(location.lon-place.lon)<.2&&Math.abs(location.lat-place.lat)<.2);
-  radio.open({...ranked,...place,countrycode:ranked?.countrycode||'TT'},life?()=>enter(life):null);
+  radio.open({...ranked,...place,id:place.id||life?.id||'radio-'+place.gdpRank,countrycode:ranked?.countrycode||'TT'},life?()=>enter(life):null);
 }
 async function enter(place=atlas?.location){
   if(!atlas||!place||transition||loadingCity||view==='city')return;
