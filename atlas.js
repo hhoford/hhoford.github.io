@@ -86,12 +86,12 @@ export class Atlas{
   constrain(){if(!this.w||!this.h)return;this.camera.zoom=Math.max(1,Math.min(9,this.camera.zoom));const halfH=this.h/(2*this.fit*this.camera.zoom);this.camera.x=((this.camera.x%this.width)+this.width)%this.width;this.camera.y=Math.max(halfH,Math.min(this.height-halfH,this.camera.y));}
   zoom(factor,x=this.w/2,y=this.h/2){const before=this.unprojectScreen(x,y);this.camera.zoom=Math.max(1,Math.min(9,this.camera.zoom*factor));const after=this.unprojectScreen(x,y);this.camera.x+=before[0]-after[0];this.camera.y+=before[1]-after[1];this.constrain();}
   hit(x,y){return this.places.find(place=>{const p=this.screen(place.point);return Math.hypot(x-p[0],y-p[1])<15;})?.location||null;}
-  cityAt(x,y){let best=null,dist=10;for(const city of this.data.cities){const p=this.screen(this.project(city.lon,city.lat));const d=Math.hypot(x-p[0],y-p[1]);if(d<dist){dist=d;best=city;}}return best;}
+  cityAt(x,y){const label=this.labels?.find(({rect:r})=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);if(label)return label.city;let best=null,dist=10;for(const city of this.data.cities){const p=this.screen(this.project(city.lon,city.lat));const d=Math.hypot(x-p[0],y-p[1]);if(d<dist){dist=d;best=city;}}return best;}
   draw(ctx,w,h,time,motion=true){
     this.resize(w,h);ctx.fillStyle=C.sea;ctx.fillRect(0,0,w,h);
     const s=this.fit*this.camera.zoom;ctx.save();ctx.translate(w/2,h/2);ctx.scale(s,s);ctx.translate(-this.camera.x,-this.camera.y);ctx.imageSmoothingEnabled=false;for(const offset of[-this.width,0,this.width])ctx.drawImage(this.base,offset,0);ctx.restore();
     if(motion){ctx.fillStyle='#d7e1c124';for(let i=0;i<45;i++){const x=(i*137.9+Math.sin(time*.3+i)*6)%this.width,y=(i*79.3+88)%this.height;if(this.mask[(Math.floor(y)*this.width+Math.floor(x))*4+3])continue;const p=this.screen([x,y]);ctx.fillRect(Math.round(p[0]),Math.round(p[1]),3+Math.round(Math.sin(time*.5+i)*2),1);}}
-    const occupied=this.places.map(place=>{const[x,y]=this.screen(place.point);return{x:x-6,y:y-12,w:place.location.name.length*4+18,h:18};});ctx.font='7px monospace';ctx.textBaseline='middle';
+    this.labels=[];const occupied=this.places.map(place=>{const[x,y]=this.screen(place.point);return{x:x-6,y:y-12,w:place.location.name.length*4+18,h:18};});ctx.font='7px monospace';ctx.textBaseline='middle';
     const cities=this.data.cities;
     for(const city of cities){
       if(lifeLocations.some(place=>Math.abs(place.lon-city.lon)<.2&&Math.abs(place.lat-city.lat)<.2))continue;
@@ -101,7 +101,7 @@ export class Atlas{
       const rect={x:x+5,y:y-5,w:width+3,h:10};
       if(this.hover!==city&&occupied.some(r=>rect.x<r.x+r.w&&rect.x+rect.w>r.x&&rect.y<r.y+r.h&&rect.y+rect.h>r.y))continue;
       if(rect.x+rect.w>w-4||rect.y<44||rect.y>h-35)continue;
-      occupied.push(rect);ctx.fillStyle='#e9d8b8ed';ctx.fillRect(Math.round(rect.x-1),Math.round(rect.y),Math.ceil(width+3),10);ctx.fillStyle='#302a20';ctx.fillText(label,Math.round(rect.x),Math.round(y));
+      occupied.push(rect);this.labels.push({city,rect});ctx.fillStyle='#e9d8b8ed';ctx.fillRect(Math.round(rect.x-1),Math.round(rect.y),Math.ceil(width+3),10);ctx.fillStyle='#302a20';ctx.fillText(label,Math.round(rect.x),Math.round(y));
     }
     for(const place of this.places){const[x,y]=this.screen(place.point);if(place.location.id!==this.location.id&&x>=0&&x<=w&&y>=0&&y<=h)poly(ctx,[[x,y-3],[x+3,y],[x,y+3],[x-3,y]],'#cfb374','#6c563b');}
     const[x,y]=this.screen(this.position);if(x>-40&&x<w+40&&y>-40&&y<h+40){
