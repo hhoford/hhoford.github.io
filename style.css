@@ -59,3 +59,5 @@ body[data-page-open="true"] #pages{left:calc(50% + clamp(24px,5vw,80px));right:2
   #page-title{font-size:32px;margin-bottom:26px}
 }
 @media(prefers-reduced-motion:no-preference){#page-panel:not([hidden]){animation:page-in .2s ease-out}@keyframes page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}}
+
+#city-credit a{color:inherit;text-decoration:none}

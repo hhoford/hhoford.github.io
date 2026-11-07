@@ -1,5 +1,5 @@
 import{Atlas,lifeLocations}from'./atlas.js?v=5';
-import{City}from'./city.js?v=7';
+import{City}from'./city.js?v=8';
 import{Radio}from'./radio.js?v=5';
 const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d');
 const ui={place:document.querySelector('#place'),destinations:document.querySelector('#destinations'),landmark:document.querySelector('#landmark'),loading:document.querySelector('#loading'),error:document.querySelector('#error'),buildings:document.querySelector('#building-links')};
@@ -14,13 +14,13 @@ function showLandmark(feature){const label=feature?.name||'';ui.landmark.hidden=
 function syncLabels(){
   if(!atlas)return;ui.destinations.hidden=view!=='atlas'||!!transition||loadingCity;
   const rect=canvas.getBoundingClientRect(),ratioX=rect.width/canvas.width,ratioY=rect.height/canvas.height;
-  for(const{link,place,life}of links.values()){
+  if(view==='atlas'&&!transition&&!loadingCity)for(const{link,place,life}of links.values()){
     const p=atlas.screen(atlas.project(place.lon,place.lat));
     if(!life){const label=atlas.labels?.find(label=>label.city===place),r=label?.rect;link.style.left=Math.round(r?r.x*ratioX:p[0]*ratioX-6)+'px';link.style.top=Math.round(r?r.y*ratioY:p[1]*ratioY-6)+'px';link.style.width=Math.ceil(r?r.w*ratioX:12)+'px';link.style.height=Math.ceil(r?r.h*ratioY:12)+'px';continue;}
     let x=p[0]*ratioX+11,y=p[1]*ratioY-7;const width=link.offsetWidth||place.name.length*7.3+8;if(p[0]>=0&&p[0]<=canvas.width&&p[1]>=0&&p[1]<=canvas.height){x=Math.max(10,Math.min(rect.width-width-10,x));y=Math.max(62,Math.min(rect.height-24,y));}link.style.left=Math.round(x)+'px';link.style.top=Math.round(y)+'px';
   }
   ui.buildings.hidden=view!=='city'||!!transition||loadingCity;
-  if(city)for(const{button,feature}of buildingButtons.values()){const p=city.screen(feature.x,feature.y,feature.h+(feature.name==='Willis Tower'?38:29));button.style.left=Math.round(p[0]*ratioX)+'px';button.style.top=Math.round(p[1]*ratioY)+'px';if(feature.page===currentPage)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}
+  if(city)for(const{button,feature}of buildingButtons.values()){const p=city.labelPoint(feature);button.style.left=Math.round(p[0]*ratioX)+'px';button.style.top=Math.round(p[1]*ratioY)+'px';if(feature.page===currentPage)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}
 }
 function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?activeLocation.name:'';document.querySelector('#city-credit').hidden=next!=='city';canvas.setAttribute('aria-label',next==='city'?activeLocation.name+'. Use arrow keys or W A S D to walk. Click or tap streets to walk. Press Escape or select Hugh Hoford to return to the atlas.':'Worldwide radio atlas. Select a city to choose a local radio station. Pan and zoom to explore the map.');showLandmark(null);syncLabels();}
 function closePage(){
@@ -50,8 +50,8 @@ async function enter(place=atlas?.location){
   if(!atlas||!place||transition||loadingCity||view==='city')return;
   loadingCity=true;ui.error.hidden=true;syncLabels();
   try{
-    if(!cities.has(place.id)){ui.loading.textContent='Loading '+place.name+'…';ui.loading.hidden=false;const response=await fetch('./data/'+place.id+'.json?v=7');if(!response.ok)throw new Error('City data unavailable');cities.set(place.id,new City(await response.json()));}
-    city=cities.get(place.id);activeLocation=place;previousCamera={...atlas.camera};atlas.select(place);city.resize(canvas.width,canvas.height);setBuildings();transition={kind:'in',start:performance.now(),duration:reduced.matches?1:1450};canvas.focus({preventScroll:true});
+    if(!cities.has(place.id)){ui.loading.textContent='Loading '+place.name+'…';ui.loading.hidden=false;const response=await fetch('./data/'+place.id+'.json?v=8');if(!response.ok)throw new Error('City data unavailable');cities.set(place.id,new City(await response.json()));}
+    city=cities.get(place.id);cities.delete(place.id);cities.set(place.id,city);if(cities.size>2){const oldest=cities.keys().next().value;cities.get(oldest).dispose();cities.delete(oldest);}if(!city.ground)city.paintGround();activeLocation=place;previousCamera={...atlas.camera};atlas.select(place);city.resize(canvas.width,canvas.height);setBuildings();transition={kind:'in',start:performance.now(),duration:reduced.matches?1:1450};canvas.focus({preventScroll:true});
   }catch(error){pendingPage=null;console.error(error);ui.error.hidden=false;}
   finally{loadingCity=false;ui.loading.hidden=true;syncLabels();}
 }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#e8d7b3">
   <title>Hugh Hoford</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <main id="world">
@@ -19,7 +19,7 @@
       <div class="radio-footer"><span id="radio-status" role="status"></span><button id="radio-retry" hidden>Retry</button><a href="https://www.radio-browser.info/" target="_blank" rel="noopener">Radio Browser</a></div>
       <audio id="radio-audio" preload="none"></audio>
     </section>
-    <a id="city-credit" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" hidden>© OpenStreetMap contributors</a>
+    <span id="city-credit" hidden><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> · <a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener">Terrain data</a></span>
     <div id="landmark" hidden role="status"></div>
     <p id="loading" role="status">Loading atlas…</p>
     <div id="error" hidden role="alert">The map could not load. <button id="retry">Retry</button></div>
@@ -35,6 +35,6 @@
       <section data-page="contact" hidden><a href="mailto:hugh.hoford@gmail.com">hugh.hoford@gmail.com</a></section>
     </div>
   </aside>
-  <script type="module" src="app.js?v=7"></script>
+  <script type="module" src="app.js?v=8"></script>
 </body>
 </html>
