@@ -26,36 +26,37 @@ export function nearbyStations(rows,place,audio){
   }).sort((a,b)=>b.clickcount-a.clickcount||a.distance-b.distance).filter(station=>{const name=station.name.trim().toLowerCase();if(seen.has(name)||seen.has(station.url_resolved))return false;seen.add(name);seen.add(station.url_resolved);return true;}).slice(0,60);
 }
 export class Radio{
-  constructor(root,onClose){
-    this.root=root;this.onClose=onClose;this.generation=0;this.playback=0;this.station=null;this.stations=[];
+  constructor(root,onClose,canFocus=()=>true){
+    this.root=root;this.onClose=onClose;this.canFocus=canFocus;this.generation=0;this.playback=0;this.station=null;this.stationPlace=null;this.stations=[];this.directoryMessage='';this.playbackMessage='';
     const get=id=>root.querySelector('#radio-'+id);this.title=get('city');this.select=get('station');this.playButton=get('play');this.status=get('status');this.retry=get('retry');this.audio=get('audio');this.exploreButton=get('explore');
     get('close').addEventListener('click',()=>this.close());
-    this.exploreButton.addEventListener('click',()=>{const explore=this.explore;this.close();explore?.();});
+    this.exploreButton.addEventListener('click',()=>this.explore?.());
     this.retry.addEventListener('click',()=>this.open(this.place,this.explore,true));
-    this.select.addEventListener('change',()=>{this.stop();this.station=this.stations.find(station=>station.stationuuid===this.select.value)||null;this.playButton.disabled=!this.station;if(this.station){this.audio.src=this.station.url_resolved;this.play();}});
-    this.playButton.addEventListener('click',()=>{if(!this.station)return;if(this.audio.paused)this.play();else this.audio.pause();});
-    this.audio.addEventListener('playing',()=>{if(!this.station)return;this.status.textContent='';this.playButton.textContent='Pause';});
-    this.audio.addEventListener('pause',()=>{this.playButton.textContent='Play';if(this.station)this.status.textContent='';});
-    this.audio.addEventListener('waiting',()=>{if(this.station)this.status.textContent='Buffering…';});
-    this.audio.addEventListener('error',()=>{if(this.station){this.status.textContent='Station unavailable. Try another.';this.playButton.textContent='Play';}});
+    this.select.addEventListener('change',()=>{this.stop();this.station=this.stations.find(station=>station.stationuuid===this.select.value)||null;this.stationPlace=this.station?this.place:null;this.playButton.disabled=!this.station;if(this.station){this.audio.src=this.station.url_resolved;this.play();}});
+    this.playButton.addEventListener('click',()=>{if(!this.station)return;if(this.audio.paused||this.audio.error)this.play();else this.audio.pause();});
+    this.audio.addEventListener('playing',()=>{if(!this.station)return;this.playbackMessage='';this.playButton.textContent='Pause';this.showStatus();});
+    this.audio.addEventListener('pause',()=>{this.playButton.textContent='Play';this.playbackMessage='';this.showStatus();});
+    this.audio.addEventListener('waiting',()=>{if(this.station){this.playbackMessage='Buffering…';this.showStatus();}});
+    this.audio.addEventListener('error',()=>{if(this.station){this.playbackMessage='Station unavailable. Try another.';this.playButton.textContent='Play';this.showStatus();}});
   }
-  stop(){this.playback++;this.station=null;this.audio.pause();this.audio.removeAttribute('src');this.audio.load();this.playButton.textContent='Play';this.playButton.disabled=true;this.status.textContent='';}
+  showStatus(){const playing=this.station?[this.station.name.trim(),this.stationPlace?.name].filter(Boolean).join(' · '):'';this.status.textContent=[this.directoryMessage,this.playbackMessage,playing].filter(Boolean).join(' · ');}
+  stop(){this.playback++;this.station=null;this.stationPlace=null;this.playbackMessage='';this.audio.pause();this.audio.removeAttribute('src');this.audio.load();this.playButton.textContent='Play';this.playButton.disabled=true;this.showStatus();}
   close(){this.generation++;this.stop();this.root.hidden=true;this.onClose?.();}
   async open(place,explore=null,retry=false){
     if(!retry&&!this.root.hidden&&this.place?.id===place.id)return;
-    const generation=++this.generation;this.stop();this.place=place;this.explore=explore;this.title.textContent=place.name;this.exploreButton.hidden=!explore;this.root.hidden=false;this.retry.hidden=true;this.select.disabled=true;this.select.replaceChildren(new Option('Choose a station',''));this.status.textContent='Loading stations…';
+    const generation=++this.generation;this.place=place;this.explore=explore;this.title.textContent=place.name;this.exploreButton.hidden=!explore;this.root.hidden=false;this.retry.hidden=true;this.select.disabled=true;this.stations=[];this.select.replaceChildren(new Option('Choose a station',''));this.directoryMessage='Loading stations…';this.showStatus();
     try{
       const rows=await stationsIn(place.countrycode);if(generation!==this.generation)return;
       this.stations=nearbyStations(rows,place,this.audio);
       for(const station of this.stations)this.select.add(new Option(station.name.trim(),station.stationuuid));
-      this.select.disabled=!this.stations.length;this.status.textContent=this.stations.length?'':'No playable stations nearby.';
-      if(this.stations.length)this.select.focus({preventScroll:true});
-    }catch{if(generation!==this.generation)return;this.status.textContent='Stations unavailable.';this.retry.hidden=false;}
+      this.select.disabled=!this.stations.length;this.directoryMessage=this.stations.length?'':'No playable stations nearby.';this.showStatus();
+      if(this.stations.length&&this.canFocus())this.select.focus({preventScroll:true});
+    }catch{if(generation!==this.generation)return;this.directoryMessage='Stations unavailable.';this.showStatus();this.retry.hidden=false;}
   }
   async play(){
-    if(!this.station)return;const playback=++this.playback,station=this.station;this.status.textContent='Connecting…';
+    if(!this.station)return;const playback=++this.playback,station=this.station;this.playbackMessage='Connecting…';this.showStatus();
     if(this.audio.error)this.audio.load();
     try{await this.audio.play();if(playback!==this.playback)return;this.playButton.textContent='Pause';request('/json/url/'+encodeURIComponent(station.stationuuid)).catch(()=>{});}
-    catch(error){if(playback!==this.playback)return;this.playButton.textContent='Play';this.status.textContent=error.name==='NotAllowedError'?'Press Play to listen.':'Station unavailable. Try another.';}
+    catch(error){if(playback!==this.playback)return;this.playButton.textContent='Play';this.playbackMessage=error.name==='NotAllowedError'?'Press Play to listen.':'Station unavailable. Try another.';this.showStatus();}
   }
 }

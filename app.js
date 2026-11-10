@@ -1,9 +1,9 @@
 import{Atlas,lifeLocations}from'./atlas.js?v=5';
 import{City}from'./city.js?v=8';
-import{Radio}from'./radio.js?v=5';
+import{Radio}from'./radio.js?v=9';
 const canvas=document.querySelector('#scene'),ctx=canvas.getContext('2d');
 const ui={place:document.querySelector('#place'),destinations:document.querySelector('#destinations'),landmark:document.querySelector('#landmark'),loading:document.querySelector('#loading'),error:document.querySelector('#error'),buildings:document.querySelector('#building-links')};
-const radio=new Radio(document.querySelector('#radio'),()=>canvas.focus({preventScroll:true}));
+const radio=new Radio(document.querySelector('#radio'),()=>canvas.focus({preventScroll:true}),()=>view==='atlas'&&!transition&&!loadingCity&&!currentPage);
 const pageNames={about:'About',projects:'Projects',cv:'CV',contact:'Contact'},panel=document.querySelector('#page-panel'),pageTitle=document.querySelector('#page-title'),pageSections=[...document.querySelectorAll('#page-content [data-page]')],pageLinks=[...document.querySelectorAll('#pages a')],buildingButtons=new Map();
 let currentPage=null,pendingPage=null;
 const reduced=matchMedia('(prefers-reduced-motion: reduce)'),cities=new Map(),links=new Map(),pointers=new Map();
@@ -22,18 +22,18 @@ function syncLabels(){
   ui.buildings.hidden=view!=='city'||!!transition||loadingCity;
   if(city)for(const{button,feature}of buildingButtons.values()){const p=city.labelPoint(feature);button.style.left=Math.round(p[0]*ratioX)+'px';button.style.top=Math.round(p[1]*ratioY)+'px';if(feature.page===currentPage)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');}
 }
-function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?activeLocation.name:'';document.querySelector('#city-credit').hidden=next!=='city';canvas.setAttribute('aria-label',next==='city'?activeLocation.name+'. Use arrow keys or W A S D to walk. Click or tap streets to walk. Press Escape or select Hugh Hoford to return to the atlas.':'Worldwide radio atlas. Select a city to choose a local radio station. Pan and zoom to explore the map.');showLandmark(null);syncLabels();}
+function setView(next){view=next;document.body.dataset.view=next;ui.place.textContent=next==='city'?activeLocation.name:'';document.querySelector('#city-credit').hidden=next!=='city';radio.exploreButton.hidden=next!=='atlas'||!radio.explore;canvas.setAttribute('aria-label',next==='city'?activeLocation.name+'. Use arrow keys or W A S D to walk. Click or tap streets to walk. Press Escape or select Hugh Hoford to return to the atlas.':'Worldwide radio atlas. Select a city to choose a local radio station. Pan and zoom to explore the map.');showLandmark(null);syncLabels();}
 function closePage(){
   if(!currentPage)return;currentPage=null;panel.hidden=true;document.body.dataset.pageOpen='false';if(city)city.activePage=null;for(const link of pageLinks)link.removeAttribute('aria-current');resize();canvas.focus({preventScroll:true});
 }
 function openPage(page){
-  if(!pageNames[page]||view!=='city'||!city)return;radio.close();currentPage=page;document.body.dataset.pageOpen='true';panel.hidden=false;pageTitle.textContent=pageNames[page];
+  if(!pageNames[page]||view!=='city'||!city)return;currentPage=page;document.body.dataset.pageOpen='true';panel.hidden=false;pageTitle.textContent=pageNames[page];
   for(const section of pageSections)section.hidden=section.dataset.page!==page;
   for(const link of pageLinks){if(link.hash==='#'+page)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
   resize();syncLabels();pageTitle.focus({preventScroll:true});
 }
 function goPage(page){
-  if(!pageNames[page]||!atlas)return;radio.close();if(transition||loadingCity){pendingPage=page;return;}if(view==='city'){openPage(page);return;}pendingPage=page;enter(lifeLocations[Math.floor(Math.random()*lifeLocations.length)]);
+  if(!pageNames[page]||!atlas)return;if(transition||loadingCity){pendingPage=page;return;}if(view==='city'){openPage(page);return;}pendingPage=page;enter(lifeLocations[Math.floor(Math.random()*lifeLocations.length)]);
 }
 for(const link of pageLinks)link.addEventListener('click',event=>{event.preventDefault();goPage(link.hash.slice(1));});
 document.querySelector('#page-close').addEventListener('click',closePage);
@@ -77,9 +77,9 @@ canvas.addEventListener('pointerup',event=>{if(!atlas)return;const p=position(ev
 canvas.addEventListener('pointercancel',event=>{pointers.delete(event.pointerId);drag=null;});
 canvas.addEventListener('pointerleave',()=>{if(atlas)atlas.hover=null;if(view==='city'&&!city.path.length)showLandmark(null);});
 canvas.addEventListener('wheel',event=>{event.preventDefault();zoom(Math.exp(-event.deltaY*.0015),...position(event));},{passive:false});
-addEventListener('keydown',event=>{if(!atlas||event.metaKey||event.ctrlKey||event.altKey)return;const key=event.key.toLowerCase();if(key==='escape'){if(currentPage)closePage();else if(!radio.root.hidden)radio.close();else leave();return;}if((key==='enter'||key===' ')&&event.target===canvas&&view==='atlas'){event.preventDefault();selectCity(atlas.hover||atlas.location);return;}if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(key)&&event.target===canvas){event.preventDefault();if(view==='city')city.keys.add(key);else{if(key==='arrowleft'||key==='a')atlas.pan(10,0);if(key==='arrowright'||key==='d')atlas.pan(-10,0);if(key==='arrowup'||key==='w')atlas.pan(0,10);if(key==='arrowdown'||key==='s')atlas.pan(0,-10);syncLabels();}}});
+addEventListener('keydown',event=>{if(!atlas||event.metaKey||event.ctrlKey||event.altKey)return;const key=event.key.toLowerCase();if(key==='escape'){if(currentPage)closePage();else if(view==='city')leave();else if(!radio.root.hidden)radio.close();return;}if((key==='enter'||key===' ')&&event.target===canvas&&view==='atlas'){event.preventDefault();selectCity(atlas.hover||atlas.location);return;}if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(key)&&event.target===canvas){event.preventDefault();if(view==='city')city.keys.add(key);else{if(key==='arrowleft'||key==='a')atlas.pan(10,0);if(key==='arrowright'||key==='d')atlas.pan(-10,0);if(key==='arrowup'||key==='w')atlas.pan(0,10);if(key==='arrowdown'||key==='s')atlas.pan(0,-10);syncLabels();}}});
 addEventListener('keyup',event=>city?.keys.delete(event.key.toLowerCase()));addEventListener('blur',()=>{city?.keys.clear();pointers.clear();drag=null;});addEventListener('resize',resize);
-document.querySelector('#name').addEventListener('click',event=>{event.preventDefault();closePage();radio.close();if(view==='city')leave();else if(atlas&&!transition){atlas.reset();syncLabels();}});
+document.querySelector('#name').addEventListener('click',event=>{event.preventDefault();closePage();if(view==='city')leave();else if(atlas&&!transition){atlas.reset();syncLabels();}});
 document.querySelector('#retry').addEventListener('click',()=>location.reload());
 async function start(){
   try{const response=await fetch('./data/atlas.json?v=5');if(!response.ok)throw new Error('Map data unavailable');atlas=new Atlas(await response.json());activeLocation=atlas.location;
